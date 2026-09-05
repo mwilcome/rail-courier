@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { LOOK, PHASE_MS, PHASES, hex, lookFor, phaseAt, trackFor } from './cycle'
 import {
   BUMP_IMPULSE,
   KNOCK_GAP_MS,
@@ -295,3 +296,37 @@ describe('mobile scale', () => {
     })
   })
 })
+
+describe('day cycle', () => {
+  it('walks dawn → day → dusk → night and loops', () => {
+    expect(phaseAt(0)).toBe('dawn')
+    expect(phaseAt(PHASE_MS - 1)).toBe('dawn')
+    expect(phaseAt(PHASE_MS)).toBe('day')
+    expect(phaseAt(PHASE_MS * 2)).toBe('dusk')
+    expect(phaseAt(PHASE_MS * 3)).toBe('night')
+    expect(phaseAt(PHASE_MS * 4)).toBe('dawn')
+    expect(phaseAt(-1)).toBe('night')
+    expect(PHASES).toEqual(['dawn', 'day', 'dusk', 'night'])
+  })
+
+  it('maps each phase to a distinct track and look', () => {
+    const tracks = PHASES.map((p) => {
+      const t = trackFor(p)
+      return `${t.bpm}:${t.wave}:${t.steps.join('.')}`
+    })
+    expect(new Set(tracks).size).toBe(PHASES.length)
+    expect(trackFor(phaseAt(0))).toEqual(trackFor('dawn'))
+    expect(trackFor(phaseAt(PHASE_MS))).toEqual(trackFor('day'))
+    expect(trackFor(phaseAt(PHASE_MS * 3))).toEqual(trackFor('night'))
+
+    const looks = PHASES.map((p) => {
+      const l = lookFor(p)
+      return `${l.skyTop}:${l.star.join(',')}:${l.moon}`
+    })
+    expect(new Set(looks).size).toBe(PHASES.length)
+    expect(lookFor('night').moon).toBe(true)
+    expect(lookFor('dawn').moon).toBe(false)
+    expect(hex(LOOK.day.neon)).toBe('#2de2e6')
+  })
+})
+
