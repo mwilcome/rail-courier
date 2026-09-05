@@ -16,6 +16,8 @@ export class PlayScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.ended = false
+    this.run = freshRun()
     const { floor, walls } = drawLevel(this)
     this.cart = new Cart(this, LEVEL.playerSpawn.x, LEVEL.playerSpawn.y)
     this.physics.add.collider(this.cart.hull, floor)
