@@ -34,11 +34,18 @@ export const WOBBLE_MS = 880
 
 export type Motion = { vx: number; lean: number; leanVel: number }
 export type RunResult = 'play' | 'spill' | 'fell' | 'deliver'
-export type Run = { cargo: boolean; payout: number }
+export type Run = { cargo: boolean; payout: number; streak: number }
 
 export const PAYOUT = 1
 export const RESET_X = 40
 export const RESET_LEAN = 0.22
+
+/** Nth station in this run. 1st pays PAYOUT; later stops pay more. */
+export const payFor = (nth: number): number => PAYOUT * nth
+
+/** One HUD line: pay plus current (or opening) streak. Not a dense panel. */
+export const hudText = ({ payout, streak }: Pick<Run, 'payout' | 'streak'>): string =>
+  `PAY ${payout}  ×${streak || 1}`
 
 export const LEVEL = {
   worldBounds: { x: 0, y: 0, width: 960, height: 540 },
@@ -53,15 +60,15 @@ export const LEVEL = {
     { x: 940, y: 0, width: 20, height: 540 },
     { x: 20, y: 0, width: 920, height: 20 },
   ],
-  /** Station: one or two right bumps from spawn, still short of the pit. */
-  goal: { x: 280, y: 420, width: 110, height: 80 },
+  /** Station: one right bump from spawn or a mild reset, still short of the pit. */
+  goal: { x: 248, y: 420, width: 142, height: 80 },
   failZones: [
     { x: 540, y: 500, width: 160, height: 40 },
     { x: 0, y: 540, width: 960, height: 80 },
   ],
 } as const
 
-export const freshRun = (): Run => ({ cargo: true, payout: 0 })
+export const freshRun = (): Run => ({ cargo: true, payout: 0, streak: 0 })
 
 export const rest = (): Motion => ({ vx: 0, lean: 0, leanVel: 0 })
 
@@ -112,12 +119,14 @@ export function resultOf(lean: number, x: number, y: number, cargo = true): RunR
   return 'play'
 }
 
-/** Payout + reload + mild random lean/x. No-op unless cargo is aboard. */
+/** Streak payout + reload + mild random lean/x. No-op unless cargo is aboard. */
 export function applyDeliver(run: Run, rng: () => number = Math.random): Run & Motion & { x: number; y: number } {
   if (!run.cargo) return { ...run, ...rest(), x: LEVEL.playerSpawn.x, y: LEVEL.playerSpawn.y }
+  const streak = run.streak + 1
   return {
     cargo: true,
-    payout: run.payout + PAYOUT,
+    streak,
+    payout: run.payout + payFor(streak),
     ...rest(),
     lean: (rng() - 0.5) * RESET_LEAN,
     x: LEVEL.playerSpawn.x + (rng() - 0.5) * RESET_X,

@@ -77,6 +77,7 @@ export class Cart {
   /** Put a fresh crate back on the cart and park at the reset pose. */
   reload(x: number, y: number, lean: number): void {
     this.spilled = false
+    this.age = 0
     this.lean = lean
     this.leanVel = 0
     this.body.reset(x, y)
