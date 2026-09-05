@@ -7,6 +7,7 @@ import {
   LEAN_FAIL,
   LEAN_SAFE,
   LEVEL,
+  RESET_X,
   WOBBLE_AMP,
   advance,
   applyDeliver,
@@ -115,8 +116,11 @@ describe('station deliver', () => {
 
   it('is a short hop from spawn, not a long lean slog', () => {
     const { x, y } = LEVEL.playerSpawn
+    const hop = 78
     expect(isStation(x, y)).toBe(false)
-    expect(isStation(x + 90, y)).toBe(true)
+    expect(isStation(x - RESET_X / 2, y)).toBe(false)
+    expect(isStation(x - RESET_X / 2 + hop, y)).toBe(true)
+    expect(isStation(x + hop, y)).toBe(true)
   })
 
   it('spill and fell still end the run, even on the pad', () => {

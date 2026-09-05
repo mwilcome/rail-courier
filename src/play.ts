@@ -60,8 +60,8 @@ export const LEVEL = {
     { x: 940, y: 0, width: 20, height: 540 },
     { x: 20, y: 0, width: 920, height: 20 },
   ],
-  /** Station: one or two right bumps from spawn, still short of the pit. */
-  goal: { x: 280, y: 420, width: 110, height: 80 },
+  /** Station: one right bump from spawn or a mild reset, still short of the pit. */
+  goal: { x: 248, y: 420, width: 142, height: 80 },
   failZones: [
     { x: 540, y: 500, width: 160, height: 40 },
     { x: 0, y: 540, width: 960, height: 80 },
