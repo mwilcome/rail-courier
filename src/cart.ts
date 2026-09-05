@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { LEAN_SAFE, bump, cargoLeftCart, step, type Motion } from './play'
+import { LEAN_SAFE, advance, bump, cargoLeftCart, shownLean, type Motion } from './play'
 
 const ARM = 26
 const OK = 0x5ce1e6
@@ -12,6 +12,7 @@ export class Cart {
   readonly body: Phaser.Physics.Arcade.Body
   lean = 0
   leanVel = 0
+  age = 0
   locked = false
   spilled = false
 
@@ -41,9 +42,10 @@ export class Cart {
 
   update(dtMs: number): void {
     if (this.locked || this.spilled) return
-    const next = step(this.motion(), dtMs)
-    this.lean = next.lean
-    this.leanVel = next.leanVel
+    const next = advance(this.motion(), dtMs, this.age)
+    this.age = next.age
+    this.lean = next.motion.lean
+    this.leanVel = next.motion.leanVel
     this.drawCargo()
   }
 
@@ -85,8 +87,9 @@ export class Cart {
 
   private drawCargo(): void {
     const { x, y } = this.hull
-    this.cargo.setPosition(x + Math.sin(this.lean) * ARM, y - 4 - Math.cos(this.lean) * ARM)
-    this.cargo.setRotation(this.lean)
+    const lean = shownLean(this.lean, this.age)
+    this.cargo.setPosition(x + Math.sin(lean) * ARM, y - 4 - Math.cos(lean) * ARM)
+    this.cargo.setRotation(lean)
     this.cargo.setFillStyle(Math.abs(this.lean) > LEAN_SAFE ? WARN : OK)
   }
 }

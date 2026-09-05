@@ -25,6 +25,12 @@ const LEAN_FROM_VX = 0.0024
 const LEAN_SPRING = 5
 const LEAN_DAMP = 1.6
 
+/** Spaced track knock: leanVel kick only. No vx — not a player bump. */
+export const KNOCK_IMPULSE = 1.7
+export const KNOCK_GAP_MS = 1400
+export const WOBBLE_AMP = 0.18
+export const WOBBLE_MS = 880
+
 export type Motion = { vx: number; lean: number; leanVel: number }
 export type RunResult = 'play' | 'spill' | 'fell' | 'goal'
 
@@ -60,6 +66,30 @@ export function step(m: Motion, dtMs: number): Motion {
   const dt = Math.min(dtMs / 1000, 0.05)
   const leanVel = m.leanVel + (m.vx * LEAN_FROM_VX - m.lean * LEAN_SPRING - m.leanVel * LEAN_DAMP) * dt
   return { vx: m.vx, lean: m.lean + leanVel * dt, leanVel }
+}
+
+/** Discrete knock. Pushes further from upright so lean can walk toward spill. */
+export function knock(m: Motion): Motion {
+  const dir = m.lean < 0 ? -1 : 1
+  return { vx: m.vx, lean: m.lean, leanVel: m.leanVel + dir * KNOCK_IMPULSE }
+}
+
+export function idleWobble(ageMs: number): number {
+  return Math.sin((ageMs / WOBBLE_MS) * Math.PI * 2) * WOBBLE_AMP
+}
+
+export function shownLean(lean: number, ageMs: number): number {
+  return lean + idleWobble(ageMs)
+}
+
+export function dueKnock(beforeMs: number, afterMs: number): boolean {
+  return Math.floor(afterMs / KNOCK_GAP_MS) > Math.floor(beforeMs / KNOCK_GAP_MS)
+}
+
+/** One frame of play: optional spaced knock, then lean step. Wobble is display-only. */
+export function advance(m: Motion, dtMs: number, ageMs: number): { motion: Motion; age: number } {
+  const age = ageMs + dtMs
+  return { motion: step(dueKnock(ageMs, age) ? knock(m) : m, dtMs), age }
 }
 
 export function cargoLeftCart(lean: number): boolean {

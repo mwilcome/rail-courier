@@ -1,5 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { BUMP_IMPULSE, LEAN_FAIL, LEAN_SAFE, LEVEL, bump, cargoLeftCart, gameScale, rest, resultOf, step } from './play'
+import {
+  BUMP_IMPULSE,
+  KNOCK_GAP_MS,
+  KNOCK_IMPULSE,
+  LEAN_FAIL,
+  LEAN_SAFE,
+  LEVEL,
+  WOBBLE_AMP,
+  advance,
+  bump,
+  cargoLeftCart,
+  dueKnock,
+  gameScale,
+  rest,
+  resultOf,
+  shownLean,
+  step,
+  knock,
+} from './play'
 
 function peakLean(start: ReturnType<typeof rest>, frames = 120, dt = 16): number {
   let m = start
@@ -63,6 +81,67 @@ describe('leave cart / spill result', () => {
   it('pit and goal still resolve after lean is safe', () => {
     expect(resultOf(0, 620, 520)).toBe('fell')
     expect(resultOf(0, 880, 450)).toBe('goal')
+  })
+})
+
+describe('track knocks', () => {
+  it('worsens lean without a bump or any vx', () => {
+    const start = { ...rest(), lean: 0.28 }
+    const kicked = knock(start)
+    expect(kicked.vx).toBe(0)
+    expect(kicked.leanVel).toBe(KNOCK_IMPULSE)
+    expect(peakLean(kicked)).toBeGreaterThan(start.lean)
+    expect(peakLean(kicked)).toBeGreaterThan(peakLean(start))
+  })
+
+  it('fires once at the gap, not as a hold-steer force between knocks', () => {
+    expect(dueKnock(0, 16)).toBe(false)
+    expect(dueKnock(KNOCK_GAP_MS - 8, KNOCK_GAP_MS + 8)).toBe(true)
+    expect(dueKnock(KNOCK_GAP_MS + 8, KNOCK_GAP_MS + 24)).toBe(false)
+
+    const leaned = { ...rest(), lean: 0.2 }
+    const { motion: atKnock } = advance(leaned, 16, KNOCK_GAP_MS - 8)
+    expect(atKnock.vx).toBe(0)
+    expect(atKnock.leanVel).toBeGreaterThan(leaned.leanVel)
+
+    const { motion: coast } = advance(atKnock, 16, KNOCK_GAP_MS + 8)
+    expect(coast.leanVel).toBeLessThan(atKnock.leanVel)
+  })
+
+  it('can push lean across the fail threshold without extra bumps', () => {
+    const oneBump = bump(rest(), 1)
+    expect(peakLean(oneBump)).toBeLessThan(LEAN_FAIL)
+
+    let m = knock(oneBump)
+    const { x, y } = LEVEL.playerSpawn
+    let worst: ReturnType<typeof resultOf> = 'play'
+    let peak = 0
+    for (let i = 0; i < 90; i++) {
+      m = step(m, 16)
+      peak = Math.max(peak, Math.abs(m.lean))
+      if (worst === 'play') worst = resultOf(m.lean, x, y)
+    }
+    expect(peak).toBeGreaterThan(LEAN_FAIL)
+    expect(worst).toBe('spill')
+  })
+})
+
+describe('idle wobble', () => {
+  it('is present between knocks and stays small', () => {
+    let m = rest()
+    let age = 0
+    const samples: number[] = []
+    for (let i = 0; i < 70; i++) {
+      const next = advance(m, 16, age)
+      m = next.motion
+      age = next.age
+      samples.push(shownLean(m.lean, age))
+    }
+    expect(age).toBeLessThan(KNOCK_GAP_MS)
+    expect(Math.max(...samples) - Math.min(...samples)).toBeGreaterThan(WOBBLE_AMP)
+    expect(Math.max(...samples.map(Math.abs))).toBeLessThan(LEAN_SAFE)
+    expect(m.vx).toBe(0)
+    expect(Math.abs(m.lean)).toBeLessThan(0.02)
   })
 })
 
