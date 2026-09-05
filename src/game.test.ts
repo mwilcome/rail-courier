@@ -7,12 +7,16 @@ import {
   LEAN_FAIL,
   LEAN_SAFE,
   LEVEL,
+  PAYOUT,
   WOBBLE_AMP,
   advance,
+  applyDeliver,
   bump,
   cargoLeftCart,
   dueKnock,
+  freshRun,
   gameScale,
+  isStation,
   rest,
   resultOf,
   shownLean,
@@ -79,9 +83,38 @@ describe('leave cart / spill result', () => {
     expect(resultOf(0, x, y)).toBe('play')
   })
 
-  it('pit and goal still resolve after lean is safe', () => {
+  it('pit still resolves after lean is safe', () => {
     expect(resultOf(0, 620, 520)).toBe('fell')
-    expect(resultOf(0, 880, 450)).toBe('goal')
+  })
+})
+
+describe('station deliver', () => {
+  const pad = { x: LEVEL.goal.x + 30, y: LEVEL.goal.y + 40 }
+
+  it('delivers only with cargo aboard', () => {
+    expect(resultOf(0, pad.x, pad.y, true)).toBe('deliver')
+    expect(resultOf(0, pad.x, pad.y, false)).toBe('play')
+    expect(applyDeliver({ cargo: false, payout: 3 }).payout).toBe(3)
+  })
+
+  it('payout increases and cargo reloads', () => {
+    const once = applyDeliver(freshRun(), () => 0.5)
+    expect(once.payout).toBe(PAYOUT)
+    expect(once.cargo).toBe(true)
+    expect(applyDeliver(once, () => 0.5).payout).toBe(PAYOUT * 2)
+  })
+
+  it('mild reset leaves the station so the run can continue', () => {
+    const next = applyDeliver(freshRun(), () => 0.5)
+    expect(isStation(next.x, next.y)).toBe(false)
+    expect(resultOf(next.lean, next.x, next.y, next.cargo)).toBe('play')
+    expect(Math.abs(next.lean)).toBeLessThan(0.12)
+  })
+
+  it('spill and fell still end the run, even on the pad', () => {
+    expect(resultOf(LEAN_FAIL + 0.01, pad.x, pad.y, true)).toBe('spill')
+    expect(resultOf(0, 620, 520, true)).toBe('fell')
+    expect(resultOf(LEAN_FAIL + 0.01, pad.x, pad.y, true)).not.toBe('deliver')
   })
 })
 

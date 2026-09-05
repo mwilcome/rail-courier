@@ -74,6 +74,15 @@ export class Cart {
     this.body.enable = false
   }
 
+  /** Put a fresh crate back on the cart and park at the reset pose. */
+  reload(x: number, y: number, lean: number): void {
+    this.spilled = false
+    this.lean = lean
+    this.leanVel = 0
+    this.body.reset(x, y)
+    this.drawCargo()
+  }
+
   private apply(dir: -1 | 1): void {
     if (this.locked || this.spilled) return
     const next = bump(this.motion(), dir)

@@ -1,13 +1,15 @@
 import Phaser from 'phaser'
 import { Cart } from './cart'
 import { bindBumpInput } from './input'
-import { LEVEL, resultOf } from './play'
+import { LEVEL, applyDeliver, resultOf } from './play'
 
 export class PlayScene extends Phaser.Scene {
   private cart!: Cart
   private unbindInput?: () => void
   private restartKey?: Phaser.Input.Keyboard.Key
   private ended = false
+  private payout = 0
+  private hud!: Phaser.GameObjects.Text
 
   constructor() {
     super({ key: 'PlayScene' })
@@ -21,20 +23,27 @@ export class PlayScene extends Phaser.Scene {
     this.unbindInput = bindBumpInput(this, this.cart)
     this.restartKey = this.input.keyboard?.addKey('R', true)
     this.restartKey?.on('down', this.restart, this)
+    this.hud = this.add
+      .text(24, 24, 'PAY 0', { fontFamily: 'sans-serif', fontSize: '22px', color: '#f4f1de' })
+      .setScrollFactor(0)
+      .setDepth(900)
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this)
   }
 
   update(_t: number, delta: number): void {
     if (this.ended) return
     this.cart.update(delta)
-    const result = resultOf(this.cart.lean, this.cart.hull.x, this.cart.hull.y)
+    const result = resultOf(this.cart.lean, this.cart.hull.x, this.cart.hull.y, !this.cart.spilled)
     if (result === 'spill') this.endSpill()
     else if (result === 'fell') this.endFell()
-    else if (result === 'goal') {
-      this.ended = true
-      this.cart.lock()
-      this.time.delayedCall(400, this.restart, [], this)
-    }
+    else if (result === 'deliver') this.deliver()
+  }
+
+  private deliver(): void {
+    const next = applyDeliver({ cargo: !this.cart.spilled, payout: this.payout })
+    this.payout = next.payout
+    this.cart.reload(next.x, next.y, next.lean)
+    this.hud.setText(`PAY ${this.payout}`)
   }
 
   private endSpill(): void {
@@ -86,7 +95,8 @@ function drawLevel(scene: Phaser.Scene): { floor: Phaser.GameObjects.Rectangle[]
     return obj
   }
   LEVEL.failZones.forEach((r) => box(r, 0xc23b3b, 0.45, true))
-  box(LEVEL.goal, 0x3ecf6a, 0.85, true)
+  const stn = box(LEVEL.goal, 0x3ecf6a, 0.85, true)
+  scene.add.text(stn.x, stn.y, 'STN', { fontFamily: 'sans-serif', fontSize: '16px', color: '#083' }).setOrigin(0.5)
   return {
     floor: LEVEL.floor.map((r) => box(r, 0x4a5560)),
     walls: LEVEL.walls.map((r) => box(r, 0x2d343c)),

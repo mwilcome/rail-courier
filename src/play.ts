@@ -33,7 +33,12 @@ export const WOBBLE_AMP = 0.24
 export const WOBBLE_MS = 880
 
 export type Motion = { vx: number; lean: number; leanVel: number }
-export type RunResult = 'play' | 'spill' | 'fell' | 'goal'
+export type RunResult = 'play' | 'spill' | 'fell' | 'deliver'
+export type Run = { cargo: boolean; payout: number }
+
+export const PAYOUT = 1
+export const RESET_X = 40
+export const RESET_LEAN = 0.22
 
 export const LEVEL = {
   worldBounds: { x: 0, y: 0, width: 960, height: 540 },
@@ -48,12 +53,15 @@ export const LEVEL = {
     { x: 940, y: 0, width: 20, height: 540 },
     { x: 20, y: 0, width: 920, height: 20 },
   ],
-  goal: { x: 848, y: 420, width: 64, height: 80 },
+  /** Station: reachable pad before the pit. Old far goal is unused. */
+  goal: { x: 400, y: 420, width: 64, height: 80 },
   failZones: [
     { x: 540, y: 500, width: 160, height: 40 },
     { x: 0, y: 540, width: 960, height: 80 },
   ],
 } as const
+
+export const freshRun = (): Run => ({ cargo: true, payout: 0 })
 
 export const rest = (): Motion => ({ vx: 0, lean: 0, leanVel: 0 })
 
@@ -97,11 +105,24 @@ export function cargoLeftCart(lean: number): boolean {
   return Math.abs(lean) > LEAN_FAIL
 }
 
-export function resultOf(lean: number, x: number, y: number): RunResult {
+export function resultOf(lean: number, x: number, y: number, cargo = true): RunResult {
   if (cargoLeftCart(lean)) return 'spill'
   if (isFail(x, y)) return 'fell'
-  if (isGoal(x, y)) return 'goal'
+  if (cargo && isStation(x, y)) return 'deliver'
   return 'play'
+}
+
+/** Payout + reload + mild random lean/x. No-op unless cargo is aboard. */
+export function applyDeliver(run: Run, rng: () => number = Math.random): Run & Motion & { x: number; y: number } {
+  if (!run.cargo) return { ...run, ...rest(), x: LEVEL.playerSpawn.x, y: LEVEL.playerSpawn.y }
+  return {
+    cargo: true,
+    payout: run.payout + PAYOUT,
+    ...rest(),
+    lean: (rng() - 0.5) * RESET_LEAN,
+    x: LEVEL.playerSpawn.x + (rng() - 0.5) * RESET_X,
+    y: LEVEL.playerSpawn.y,
+  }
 }
 
 export function isFail(x: number, y: number): boolean {
@@ -109,7 +130,7 @@ export function isFail(x: number, y: number): boolean {
   return x < b.x || y < b.y || x > b.x + b.width || y > b.y + b.height || LEVEL.failZones.some((z) => hit(z, x, y))
 }
 
-export function isGoal(x: number, y: number): boolean {
+export function isStation(x: number, y: number): boolean {
   return hit(LEVEL.goal, x, y)
 }
 
