@@ -37,6 +37,8 @@ export type RunResult = 'play' | 'spill' | 'fell' | 'deliver'
 export type Run = { cargo: boolean; payout: number; streak: number }
 
 export const PAYOUT = 1
+/** Small bump for recovering from the warn band. Same HUD line as PAY. */
+export const NEAR_PAY = 1
 export const RESET_X = 40
 export const RESET_LEAN = 0.22
 
@@ -111,6 +113,15 @@ export function advance(m: Motion, dtMs: number, ageMs: number): { motion: Motio
 export function cargoLeftCart(lean: number): boolean {
   return Math.abs(lean) > LEAN_FAIL
 }
+
+/** Warn band, not spill. Edge-trigger: enter then leave once. Spill never awards. */
+export function nearMiss(wasDanger: boolean, lean: number): { danger: boolean; award: boolean } {
+  if (cargoLeftCart(lean)) return { danger: false, award: false }
+  const danger = Math.abs(lean) > LEAN_SAFE
+  return { danger, award: wasDanger && !danger }
+}
+
+export const applyNearMiss = (run: Run): Run => ({ ...run, payout: run.payout + NEAR_PAY })
 
 export function resultOf(lean: number, x: number, y: number, cargo = true): RunResult {
   if (cargoLeftCart(lean)) return 'spill'

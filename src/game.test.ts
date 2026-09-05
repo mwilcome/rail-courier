@@ -7,10 +7,12 @@ import {
   LEAN_FAIL,
   LEAN_SAFE,
   LEVEL,
+  NEAR_PAY,
   RESET_X,
   WOBBLE_AMP,
   advance,
   applyDeliver,
+  applyNearMiss,
   bump,
   cargoLeftCart,
   dueKnock,
@@ -18,6 +20,7 @@ import {
   gameScale,
   hudText,
   isStation,
+  nearMiss,
   payFor,
   rest,
   resultOf,
@@ -87,6 +90,46 @@ describe('leave cart / spill result', () => {
 
   it('pit still resolves after lean is safe', () => {
     expect(resultOf(0, 620, 520)).toBe('fell')
+  })
+})
+
+describe('near-miss', () => {
+  it('danger then recover awards once', () => {
+    const enter = nearMiss(false, LEAN_SAFE + 0.2)
+    expect(enter.award).toBe(false)
+    expect(enter.danger).toBe(true)
+
+    const recover = nearMiss(enter.danger, LEAN_SAFE - 0.1)
+    expect(recover.award).toBe(true)
+    expect(recover.danger).toBe(false)
+
+    const staySafe = nearMiss(recover.danger, 0)
+    expect(staySafe.award).toBe(false)
+
+    const paid = applyNearMiss(freshRun())
+    expect(paid.payout).toBe(NEAR_PAY)
+    expect(paid.streak).toBe(0)
+    expect(hudText(paid)).toBe('PAY 1  ×1')
+  })
+
+  it('staying in danger does not spam', () => {
+    let danger = false
+    let awards = 0
+    for (const lean of [LEAN_SAFE + 0.15, LEAN_SAFE + 0.4, LEAN_SAFE + 0.7, (LEAN_SAFE + LEAN_FAIL) / 2]) {
+      const n = nearMiss(danger, lean)
+      danger = n.danger
+      if (n.award) awards++
+    }
+    expect(danger).toBe(true)
+    expect(awards).toBe(0)
+  })
+
+  it('spill does not award near-miss', () => {
+    const enter = nearMiss(false, LEAN_SAFE + 0.3)
+    const spilled = nearMiss(enter.danger, LEAN_FAIL + 0.01)
+    expect(enter.danger).toBe(true)
+    expect(spilled.award).toBe(false)
+    expect(resultOf(LEAN_FAIL + 0.01, LEVEL.playerSpawn.x, LEVEL.playerSpawn.y)).toBe('spill')
   })
 })
 
