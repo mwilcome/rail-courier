@@ -28,8 +28,8 @@ export class PlayScene extends Phaser.Scene {
     if (this.ended) return
     this.cart.update(delta)
     const result = resultOf(this.cart.lean, this.cart.hull.x, this.cart.hull.y)
-    if (result === 'spill') this.fail('SPILLED\ncargo run over\ntap or press R')
-    else if (result === 'fell') this.fail('FELL\ntap or press R')
+    if (result === 'spill') this.endSpill()
+    else if (result === 'fell') this.endFell()
     else if (result === 'goal') {
       this.ended = true
       this.cart.lock()
@@ -37,12 +37,27 @@ export class PlayScene extends Phaser.Scene {
     }
   }
 
-  private fail(message: string): void {
+  private endSpill(): void {
     this.ended = true
     this.cart.lock()
     this.cart.spill()
+    this.showResult('SPILLED\ncargo run over\ntap or press R')
+  }
+
+  private endFell(): void {
+    this.ended = true
+    this.cart.lock()
+    this.showResult('FELL\ntap or press R')
+  }
+
+  private showResult(message: string): void {
     const { width: w, height: h } = this.scale
-    this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.5).setScrollFactor(0).setDepth(1100).setInteractive().on('pointerdown', this.restart)
+    this.add
+      .rectangle(w / 2, h / 2, w, h, 0x000000, 0.5)
+      .setScrollFactor(0)
+      .setDepth(1100)
+      .setInteractive()
+      .on('pointerdown', this.restart)
     this.add
       .text(w / 2, h / 2, message, { fontFamily: 'sans-serif', fontSize: '28px', color: '#ffffff', align: 'center' })
       .setOrigin(0.5)
