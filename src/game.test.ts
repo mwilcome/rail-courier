@@ -111,6 +111,12 @@ describe('station deliver', () => {
     expect(Math.abs(next.lean)).toBeLessThan(0.12)
   })
 
+  it('is a short hop from spawn, not a long lean slog', () => {
+    const { x, y } = LEVEL.playerSpawn
+    expect(isStation(x, y)).toBe(false)
+    expect(isStation(x + 90, y)).toBe(true)
+  })
+
   it('spill and fell still end the run, even on the pad', () => {
     expect(resultOf(LEAN_FAIL + 0.01, pad.x, pad.y, true)).toBe('spill')
     expect(resultOf(0, 620, 520, true)).toBe('fell')

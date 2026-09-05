@@ -43,7 +43,7 @@ export const RESET_LEAN = 0.22
 export const LEVEL = {
   worldBounds: { x: 0, y: 0, width: 960, height: 540 },
   worldCollision: { left: true, right: true, up: true, down: false },
-  playerSpawn: { x: 120, y: 460 },
+  playerSpawn: { x: 200, y: 460 },
   floor: [
     { x: 20, y: 500, width: 520, height: 40 },
     { x: 700, y: 500, width: 240, height: 40 },
@@ -53,8 +53,8 @@ export const LEVEL = {
     { x: 940, y: 0, width: 20, height: 540 },
     { x: 20, y: 0, width: 920, height: 20 },
   ],
-  /** Station: reachable pad before the pit. Old far goal is unused. */
-  goal: { x: 400, y: 420, width: 64, height: 80 },
+  /** Station: one or two right bumps from spawn, still short of the pit. */
+  goal: { x: 280, y: 420, width: 110, height: 80 },
   failZones: [
     { x: 540, y: 500, width: 160, height: 40 },
     { x: 0, y: 540, width: 960, height: 80 },
