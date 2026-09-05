@@ -1,19 +1,12 @@
 import Phaser from 'phaser'
 import { PlayScene } from './PlayScene'
-
-export const GAME_WIDTH = 960
-export const GAME_HEIGHT = 540
+import { gameScale } from './play'
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: 'game',
   backgroundColor: '#1b1b2f',
-  scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: GAME_WIDTH,
-    height: GAME_HEIGHT,
-  },
+  scale: gameScale(Phaser.Scale),
   physics: {
     default: 'arcade',
     arcade: {

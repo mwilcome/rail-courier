@@ -1,81 +1,62 @@
 import type Phaser from 'phaser'
 
-export type Bumper = {
-  bumpLeft(): void
-  bumpRight(): void
-}
+export type Bumper = { bumpLeft(): void; bumpRight(): void }
 
 const HIT = 88
 const PAD = 20
-const DEPTH = 1000
 
-/**
- * Discrete L/R bumps only: one impulse per keydown or tap. Hold does not repeat.
- * Keyboard and on-screen buttons share the same bumper methods.
- */
+/** One impulse per keydown or tap. Hold does not repeat. */
 export function bindBumpInput(scene: Phaser.Scene, bumper: Bumper): () => void {
-  const onLeft = (): void => {
-    bumper.bumpLeft()
-  }
-  const onRight = (): void => {
-    bumper.bumpRight()
-  }
-
+  const left = () => bumper.bumpLeft()
+  const right = () => bumper.bumpRight()
   const leftKey = scene.input.keyboard?.addKey('LEFT', true)
   const rightKey = scene.input.keyboard?.addKey('RIGHT', true)
-  leftKey?.on('down', onLeft)
-  rightKey?.on('down', onRight)
+  leftKey?.on('down', left)
+  rightKey?.on('down', right)
 
-  const leftBtn = makeHit(scene, onLeft)
-  const rightBtn = makeHit(scene, onRight)
-  const leftLabel = makeLabel(scene, 'L')
-  const rightLabel = makeLabel(scene, 'R')
+  const lBtn = hit(scene, left)
+  const rBtn = hit(scene, right)
+  const lTxt = label(scene, 'L')
+  const rTxt = label(scene, 'R')
 
   const layout = (): void => {
-    const { width, height } = scene.scale
-    const y = height - PAD - HIT / 2
-    const lx = PAD + HIT / 2
-    const rx = width - PAD - HIT / 2
-    leftBtn.setPosition(lx, y)
-    leftLabel.setPosition(lx, y)
-    rightBtn.setPosition(rx, y)
-    rightLabel.setPosition(rx, y)
+    const y = scene.scale.height - PAD - HIT / 2
+    place(lBtn, lTxt, PAD + HIT / 2, y)
+    place(rBtn, rTxt, scene.scale.width - PAD - HIT / 2, y)
   }
-
   layout()
   scene.scale.on('resize', layout)
 
   return () => {
-    leftKey?.off('down', onLeft)
-    rightKey?.off('down', onRight)
+    leftKey?.off('down', left)
+    rightKey?.off('down', right)
     scene.scale.off('resize', layout)
-    leftBtn.destroy()
-    rightBtn.destroy()
-    leftLabel.destroy()
-    rightLabel.destroy()
+    lBtn.destroy()
+    rBtn.destroy()
+    lTxt.destroy()
+    rTxt.destroy()
   }
 }
 
-function makeHit(scene: Phaser.Scene, onPress: () => void): Phaser.GameObjects.Rectangle {
-  const btn = scene.add
+function hit(scene: Phaser.Scene, onPress: () => void): Phaser.GameObjects.Rectangle {
+  return scene.add
     .rectangle(0, 0, HIT, HIT, 0x1a1a1a, 0.8)
     .setStrokeStyle(2, 0xffffff, 0.85)
     .setScrollFactor(0)
-    .setDepth(DEPTH)
+    .setDepth(1000)
     .setInteractive({ useHandCursor: true })
-
-  btn.on('pointerdown', onPress)
-  return btn
+    .on('pointerdown', onPress)
 }
 
-function makeLabel(scene: Phaser.Scene, text: string): Phaser.GameObjects.Text {
+function label(scene: Phaser.Scene, text: string): Phaser.GameObjects.Text {
   return scene.add
-    .text(0, 0, text, {
-      fontFamily: 'sans-serif',
-      fontSize: '32px',
-      color: '#ffffff',
-    })
+    .text(0, 0, text, { fontFamily: 'sans-serif', fontSize: '32px', color: '#ffffff' })
     .setOrigin(0.5)
     .setScrollFactor(0)
-    .setDepth(DEPTH + 1)
+    .setDepth(1001)
+}
+
+function place(btn: Phaser.GameObjects.Rectangle, text: Phaser.GameObjects.Text, x: number, y: number): void {
+  btn.setPosition(x, y)
+  text.setPosition(x, y)
 }
