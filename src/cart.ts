@@ -15,6 +15,7 @@ export class Cart {
   age = 0
   locked = false
   spilled = false
+  bumped = false
 
   private readonly scene: Phaser.Scene
 
@@ -77,6 +78,7 @@ export class Cart {
   /** Put a fresh crate back on the cart and park at the reset pose. */
   reload(x: number, y: number, lean: number): void {
     this.spilled = false
+    this.bumped = false
     this.age = 0
     this.lean = lean
     this.leanVel = 0
@@ -89,6 +91,7 @@ export class Cart {
     const next = bump(this.motion(), dir)
     this.body.setVelocityX(next.vx)
     this.leanVel = next.leanVel
+    this.bumped = true
   }
 
   private motion(): Motion {

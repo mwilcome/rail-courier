@@ -35,8 +35,11 @@ export const WOBBLE_MS = 880
 export type Motion = { vx: number; lean: number; leanVel: number }
 export type RunResult = 'play' | 'spill' | 'fell' | 'deliver'
 export type Run = { cargo: boolean; payout: number; streak: number }
+export type Near = { danger: boolean; armed: boolean }
 
 export const PAYOUT = 1
+/** Small bump for recovering from the warn band. Same HUD line as PAY. */
+export const NEAR_PAY = 1
 export const RESET_X = 40
 export const RESET_LEAN = 0.22
 
@@ -69,6 +72,8 @@ export const LEVEL = {
 } as const
 
 export const freshRun = (): Run => ({ cargo: true, payout: 0, streak: 0 })
+
+export const freshNear = (): Near => ({ danger: false, armed: false })
 
 export const rest = (): Motion => ({ vx: 0, lean: 0, leanVel: 0 })
 
@@ -111,6 +116,17 @@ export function advance(m: Motion, dtMs: number, ageMs: number): { motion: Motio
 export function cargoLeftCart(lean: number): boolean {
   return Math.abs(lean) > LEAN_FAIL
 }
+
+/** Warn-band enter then leave, once. Player bump arms; idle knock recover does not pay. Spill never awards. */
+export function nearMiss(n: Near, lean: number, bumped = false): Near & { award: boolean } {
+  if (cargoLeftCart(lean)) return { ...freshNear(), award: false }
+  const danger = Math.abs(lean) > LEAN_SAFE
+  const award = n.danger && !danger && n.armed
+  const armed = danger ? n.armed || bumped : (n.armed || bumped) && !award
+  return { danger, armed, award }
+}
+
+export const applyNearMiss = (run: Run): Run => ({ ...run, payout: run.payout + NEAR_PAY })
 
 export function resultOf(lean: number, x: number, y: number, cargo = true): RunResult {
   if (cargoLeftCart(lean)) return 'spill'

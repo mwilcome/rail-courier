@@ -7,17 +7,21 @@ import {
   LEAN_FAIL,
   LEAN_SAFE,
   LEVEL,
+  NEAR_PAY,
   RESET_X,
   WOBBLE_AMP,
   advance,
   applyDeliver,
+  applyNearMiss,
   bump,
   cargoLeftCart,
   dueKnock,
   freshRun,
   gameScale,
   hudText,
+  freshNear,
   isStation,
+  nearMiss,
   payFor,
   rest,
   resultOf,
@@ -87,6 +91,62 @@ describe('leave cart / spill result', () => {
 
   it('pit still resolves after lean is safe', () => {
     expect(resultOf(0, 620, 520)).toBe('fell')
+  })
+})
+
+describe('near-miss', () => {
+  it('danger then recover awards once', () => {
+    const primed = nearMiss(freshNear(), 0, true)
+    const enter = nearMiss(primed, LEAN_SAFE + 0.2)
+    expect(enter.award).toBe(false)
+    expect(enter.danger).toBe(true)
+
+    const recover = nearMiss(enter, LEAN_SAFE - 0.1)
+    expect(recover.award).toBe(true)
+    expect(recover.danger).toBe(false)
+
+    const staySafe = nearMiss(recover, 0)
+    expect(staySafe.award).toBe(false)
+
+    const paid = applyNearMiss(freshRun())
+    expect(paid.payout).toBe(NEAR_PAY)
+    expect(paid.streak).toBe(0)
+    expect(hudText(paid)).toBe('PAY 1  ×1')
+  })
+
+  it('staying in danger does not spam', () => {
+    let n = nearMiss(freshNear(), LEAN_SAFE + 0.15, true)
+    let awards = 0
+    for (const lean of [LEAN_SAFE + 0.15, LEAN_SAFE + 0.4, LEAN_SAFE + 0.7, (LEAN_SAFE + LEAN_FAIL) / 2]) {
+      n = nearMiss(n, lean)
+      if (n.award) awards++
+    }
+    expect(n.danger).toBe(true)
+    expect(awards).toBe(0)
+  })
+
+  it('spill does not award near-miss', () => {
+    const enter = nearMiss(freshNear(), LEAN_SAFE + 0.3, true)
+    const spilled = nearMiss(enter, LEAN_FAIL + 0.01)
+    expect(enter.danger).toBe(true)
+    expect(spilled.award).toBe(false)
+    expect(resultOf(LEAN_FAIL + 0.01, LEVEL.playerSpawn.x, LEVEL.playerSpawn.y)).toBe('spill')
+  })
+
+  it('idle knock recover does not award', () => {
+    let m = rest()
+    let n = freshNear()
+    let awards = 0
+    let age = 0
+    for (let i = 0; i < 200; i++) {
+      const next = advance(m, 16, age)
+      m = next.motion
+      age = next.age
+      const nextNear = nearMiss(n, m.lean)
+      n = nextNear
+      if (nextNear.award) awards++
+    }
+    expect(awards).toBe(0)
   })
 })
 
