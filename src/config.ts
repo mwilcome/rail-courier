@@ -5,7 +5,7 @@ import { gameScale } from './play'
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: 'game',
-  backgroundColor: '#1b1b2f',
+  backgroundColor: '#12081c',
   scale: gameScale(Phaser.Scale),
   physics: {
     default: 'arcade',

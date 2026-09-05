@@ -21,7 +21,7 @@ export class Cart {
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     this.scene = scene
-    this.hull = scene.add.rectangle(x, y, 52, 26, 0xff6b35)
+    this.hull = scene.add.rectangle(x, y, 52, 26, 0xff6b35).setDepth(1).setStrokeStyle(2, 0xffffff)
     scene.physics.add.existing(this.hull)
     const body = this.hull.body
     if (!(body instanceof Phaser.Physics.Arcade.Body)) throw new Error('Cart needs a dynamic body')
@@ -29,7 +29,7 @@ export class Cart {
     this.body.setCollideWorldBounds(true)
     this.body.setDragX(500)
     this.body.setMaxVelocity(640, 2000)
-    this.cargo = scene.add.rectangle(x, y - ARM, 24, 24, OK).setDepth(1)
+    this.cargo = scene.add.rectangle(x, y - ARM, 24, 24, OK).setDepth(2).setStrokeStyle(2, 0x0a0a12)
     this.drawCargo()
   }
 
