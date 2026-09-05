@@ -1,3 +1,4 @@
-import { createGame } from './game/createGame'
+import Phaser from 'phaser'
+import { gameConfig } from './config'
 
-createGame()
+new Phaser.Game(gameConfig)
