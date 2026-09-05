@@ -1,21 +1,21 @@
 import Phaser from 'phaser'
-import { PlayScene } from '../scenes/PlayScene'
-
-export const GAME_WIDTH = 960
-export const GAME_HEIGHT = 540
+import { PlayScene } from './PlayScene'
+import { gameScale } from './play'
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
   parent: 'game',
   backgroundColor: '#1b1b2f',
+  scale: gameScale(Phaser.Scale),
   physics: {
     default: 'arcade',
     arcade: {
       gravity: { x: 0, y: 900 },
       debug: false,
     },
+  },
+  input: {
+    activePointers: 3,
   },
   scene: PlayScene,
 }
