@@ -7,7 +7,6 @@ import {
   LEAN_FAIL,
   LEAN_SAFE,
   LEVEL,
-  PAYOUT,
   WOBBLE_AMP,
   advance,
   applyDeliver,
@@ -16,7 +15,9 @@ import {
   dueKnock,
   freshRun,
   gameScale,
+  hudText,
   isStation,
+  payFor,
   rest,
   resultOf,
   shownLean,
@@ -94,14 +95,15 @@ describe('station deliver', () => {
   it('delivers only with cargo aboard', () => {
     expect(resultOf(0, pad.x, pad.y, true)).toBe('deliver')
     expect(resultOf(0, pad.x, pad.y, false)).toBe('play')
-    expect(applyDeliver({ cargo: false, payout: 3 }).payout).toBe(3)
+    expect(applyDeliver({ cargo: false, payout: 3, streak: 2 }).payout).toBe(3)
+    expect(applyDeliver({ cargo: false, payout: 3, streak: 2 }).streak).toBe(2)
   })
 
   it('payout increases and cargo reloads', () => {
     const once = applyDeliver(freshRun(), () => 0.5)
-    expect(once.payout).toBe(PAYOUT)
+    expect(once.payout).toBe(payFor(1))
     expect(once.cargo).toBe(true)
-    expect(applyDeliver(once, () => 0.5).payout).toBe(PAYOUT * 2)
+    expect(applyDeliver(once, () => 0.5).payout).toBe(payFor(1) + payFor(2))
   })
 
   it('mild reset leaves the station so the run can continue', () => {
@@ -121,6 +123,39 @@ describe('station deliver', () => {
     expect(resultOf(LEAN_FAIL + 0.01, pad.x, pad.y, true)).toBe('spill')
     expect(resultOf(0, 620, 520, true)).toBe('fell')
     expect(resultOf(LEAN_FAIL + 0.01, pad.x, pad.y, true)).not.toBe('deliver')
+  })
+})
+
+describe('escalating rewards', () => {
+  it('Nth station pays more than the first', () => {
+    const first = applyDeliver(freshRun(), () => 0.5)
+    const second = applyDeliver(first, () => 0.5)
+    expect(payFor(2)).toBeGreaterThan(payFor(1))
+    expect(second.payout - first.payout).toBeGreaterThan(first.payout)
+    expect(second.payout).toBe(payFor(1) + payFor(2))
+  })
+
+  it('streak is visible next to pay and tracks in-run delivers', () => {
+    const zero = freshRun()
+    const once = applyDeliver(zero, () => 0.5)
+    const twice = applyDeliver(once, () => 0.5)
+    expect(zero.streak).toBe(0)
+    expect(once.streak).toBe(1)
+    expect(twice.streak).toBe(2)
+    expect(hudText(zero)).toBe('PAY 0  ×1')
+    expect(hudText(once)).toBe('PAY 1  ×1')
+    expect(hudText(twice)).toBe('PAY 3  ×2')
+    expect(hudText(twice)).toMatch(/^PAY \d+  ×\d+$/)
+  })
+
+  it('fail resets streak so the next run pays first-station again', () => {
+    const hot = applyDeliver(applyDeliver(freshRun(), () => 0.5), () => 0.5)
+    expect(hot.streak).toBe(2)
+    expect(resultOf(LEAN_FAIL + 0.01, LEVEL.playerSpawn.x, LEVEL.playerSpawn.y)).toBe('spill')
+    const again = freshRun()
+    expect(again.streak).toBe(0)
+    expect(hudText(again)).toBe('PAY 0  ×1')
+    expect(applyDeliver(again, () => 0.5).payout).toBe(payFor(1))
   })
 })
 

@@ -1,14 +1,14 @@
 import Phaser from 'phaser'
 import { Cart } from './cart'
 import { bindBumpInput } from './input'
-import { LEVEL, applyDeliver, resultOf } from './play'
+import { LEVEL, applyDeliver, freshRun, hudText, resultOf } from './play'
 
 export class PlayScene extends Phaser.Scene {
   private cart!: Cart
   private unbindInput?: () => void
   private restartKey?: Phaser.Input.Keyboard.Key
   private ended = false
-  private payout = 0
+  private run = freshRun()
   private hud!: Phaser.GameObjects.Text
 
   constructor() {
@@ -24,7 +24,7 @@ export class PlayScene extends Phaser.Scene {
     this.restartKey = this.input.keyboard?.addKey('R', true)
     this.restartKey?.on('down', this.restart, this)
     this.hud = this.add
-      .text(24, 24, 'PAY 0', { fontFamily: 'sans-serif', fontSize: '22px', color: '#f4f1de' })
+      .text(24, 24, hudText(this.run), { fontFamily: 'sans-serif', fontSize: '22px', color: '#f4f1de' })
       .setScrollFactor(0)
       .setDepth(900)
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this)
@@ -40,10 +40,10 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private deliver(): void {
-    const next = applyDeliver({ cargo: !this.cart.spilled, payout: this.payout })
-    this.payout = next.payout
+    const next = applyDeliver({ ...this.run, cargo: !this.cart.spilled })
+    this.run = next
     this.cart.reload(next.x, next.y, next.lean)
-    this.hud.setText(`PAY ${this.payout}`)
+    this.hud.setText(hudText(this.run))
   }
 
   private endSpill(): void {
