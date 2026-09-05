@@ -1,14 +1,14 @@
 import Phaser from 'phaser'
 import { Cart } from './cart'
 import { bindBumpInput } from './input'
-import { LEVEL, applyDeliver, applyNearMiss, freshRun, hudText, nearMiss, resultOf } from './play'
+import { LEVEL, applyDeliver, applyNearMiss, freshNear, freshRun, hudText, nearMiss, resultOf } from './play'
 
 export class PlayScene extends Phaser.Scene {
   private cart!: Cart
   private unbindInput?: () => void
   private restartKey?: Phaser.Input.Keyboard.Key
   private ended = false
-  private danger = false
+  private near = freshNear()
   private run = freshRun()
   private hud!: Phaser.GameObjects.Text
 
@@ -18,7 +18,7 @@ export class PlayScene extends Phaser.Scene {
 
   create(): void {
     this.ended = false
-    this.danger = false
+    this.near = freshNear()
     this.run = freshRun()
     const { floor, walls } = drawLevel(this)
     this.cart = new Cart(this, LEVEL.playerSpawn.x, LEVEL.playerSpawn.y)
@@ -45,8 +45,10 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private tickNear(): void {
-    const n = nearMiss(this.danger, this.cart.lean)
-    this.danger = n.danger
+    const bumped = this.cart.bumped
+    this.cart.bumped = false
+    const n = nearMiss(this.near, this.cart.lean, bumped)
+    this.near = n
     if (!n.award) return
     this.run = applyNearMiss(this.run)
     this.hud.setText(hudText(this.run))
@@ -68,7 +70,7 @@ export class PlayScene extends Phaser.Scene {
   private deliver(): void {
     const next = applyDeliver({ ...this.run, cargo: !this.cart.spilled })
     this.run = next
-    this.danger = false
+    this.near = freshNear()
     this.cart.reload(next.x, next.y, next.lean)
     this.hud.setText(hudText(this.run))
   }
