@@ -3,6 +3,7 @@ import {
   BUMP_IMPULSE,
   KNOCK_GAP_MS,
   KNOCK_IMPULSE,
+  KNOCK_LEAN,
   LEAN_FAIL,
   LEAN_SAFE,
   LEVEL,
@@ -89,6 +90,7 @@ describe('track knocks', () => {
     const start = { ...rest(), lean: 0.28 }
     const kicked = knock(start)
     expect(kicked.vx).toBe(0)
+    expect(kicked.lean).toBeCloseTo(start.lean + KNOCK_LEAN)
     expect(kicked.leanVel).toBe(KNOCK_IMPULSE)
     expect(peakLean(kicked)).toBeGreaterThan(start.lean)
     expect(peakLean(kicked)).toBeGreaterThan(peakLean(start))

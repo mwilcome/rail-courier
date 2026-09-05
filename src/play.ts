@@ -25,10 +25,11 @@ const LEAN_FROM_VX = 0.0024
 const LEAN_SPRING = 5
 const LEAN_DAMP = 1.6
 
-/** Spaced track knock: leanVel kick only. No vx — not a player bump. */
+/** Spaced track knock: lean punch + leanVel. No vx — not a player bump. */
+export const KNOCK_LEAN = 0.32
 export const KNOCK_IMPULSE = 1.7
 export const KNOCK_GAP_MS = 1400
-export const WOBBLE_AMP = 0.18
+export const WOBBLE_AMP = 0.24
 export const WOBBLE_MS = 880
 
 export type Motion = { vx: number; lean: number; leanVel: number }
@@ -68,10 +69,10 @@ export function step(m: Motion, dtMs: number): Motion {
   return { vx: m.vx, lean: m.lean + leanVel * dt, leanVel }
 }
 
-/** Discrete knock. Pushes further from upright so lean can walk toward spill. */
+/** Discrete knock. Instant lean punch plus leanVel so it reads as a tick, not more wobble. */
 export function knock(m: Motion): Motion {
   const dir = m.lean < 0 ? -1 : 1
-  return { vx: m.vx, lean: m.lean, leanVel: m.leanVel + dir * KNOCK_IMPULSE }
+  return { vx: m.vx, lean: m.lean + dir * KNOCK_LEAN, leanVel: m.leanVel + dir * KNOCK_IMPULSE }
 }
 
 export function idleWobble(ageMs: number): number {
