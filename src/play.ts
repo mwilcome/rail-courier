@@ -22,8 +22,8 @@ export const LEAN_FAIL = 1.05
 
 const LEAN_FROM_BUMP = 2.45
 const LEAN_FROM_VX = 0.0024
-const LEAN_SPRING = 9
-const LEAN_DAMP = 2.4
+const LEAN_SPRING = 5
+const LEAN_DAMP = 1.6
 
 export type Motion = { vx: number; lean: number; leanVel: number }
 export type RunResult = 'play' | 'spill' | 'fell' | 'goal'
