@@ -3,7 +3,7 @@ import { LEAN_SAFE, bump, cargoLeftCart, step, type Motion } from './play'
 
 const ARM = 26
 const OK = 0x5ce1e6
-const WARN = 0xffd166
+const WARN = 0xffcc00
 const SPILL = 0xc23b3b
 
 export class Cart {

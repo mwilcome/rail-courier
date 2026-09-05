@@ -38,7 +38,7 @@ describe('lean overshoot', () => {
   })
 
   it('stacked bumps let momentum cross the fail threshold (spill, not a late clamp)', () => {
-    let m = bump(bump(bump(rest(), 1), 1), 1)
+    let m = bump(bump(rest(), 1), 1)
     const { x, y } = LEVEL.playerSpawn
     let worst: ReturnType<typeof resultOf> = 'play'
     let peak = 0
@@ -61,18 +61,18 @@ describe('leave cart / spill result', () => {
   })
 
   it('pit and goal still resolve after lean is safe', () => {
-    expect(resultOf(0, 620, 520)).toBe('fell')
-    expect(resultOf(0, 880, 450)).toBe('goal')
+    expect(resultOf(0, 320, 485)).toBe('fell')
+    expect(resultOf(0, 560, 430)).toBe('goal')
   })
 })
 
 describe('mobile scale', () => {
-  it('selects Phaser FIT + CENTER_BOTH at 960×540', () => {
+  it('selects Phaser FIT + CENTER_BOTH at 640×640', () => {
     expect(gameScale({ FIT: 3, CENTER_BOTH: 1 })).toEqual({
       mode: 3,
       autoCenter: 1,
-      width: 960,
-      height: 540,
+      width: 640,
+      height: 640,
     })
   })
 })

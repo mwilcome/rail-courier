@@ -1,5 +1,5 @@
-/** Phaser scale keys. `gameScale()` is what config.ts must pass to Phaser. */
-export const SCALE = { mode: 'FIT', autoCenter: 'CENTER_BOTH', width: 960, height: 540 } as const
+/** Square + FIT: same playfield on phone/desktop, portrait or landscape. */
+export const SCALE = { mode: 'FIT', autoCenter: 'CENTER_BOTH', width: 640, height: 640 } as const
 
 export function gameScale(Scale: { FIT: number; CENTER_BOTH: number }): {
   mode: number
@@ -17,10 +17,10 @@ export function gameScale(Scale: { FIT: number; CENTER_BOTH: number }): {
 
 /** One-shot horizontal delta-v (px/s). Applied only when bump() is called. */
 export const BUMP_IMPULSE = 280
-export const LEAN_SAFE = 0.42
-export const LEAN_FAIL = 1.05
+export const LEAN_SAFE = 0.32
+export const LEAN_FAIL = 0.88
 
-const LEAN_FROM_BUMP = 2.45
+const LEAN_FROM_BUMP = 2.05
 const LEAN_FROM_VX = 0.0024
 const LEAN_SPRING = 5
 const LEAN_DAMP = 1.6
@@ -29,22 +29,22 @@ export type Motion = { vx: number; lean: number; leanVel: number }
 export type RunResult = 'play' | 'spill' | 'fell' | 'goal'
 
 export const LEVEL = {
-  worldBounds: { x: 0, y: 0, width: 960, height: 540 },
+  worldBounds: { x: 0, y: 0, width: SCALE.width, height: SCALE.height },
   worldCollision: { left: true, right: true, up: true, down: false },
-  playerSpawn: { x: 120, y: 460 },
+  playerSpawn: { x: 88, y: 430 },
   floor: [
-    { x: 20, y: 500, width: 520, height: 40 },
-    { x: 700, y: 500, width: 240, height: 40 },
+    { x: 16, y: 470, width: 260, height: 32 },
+    { x: 384, y: 470, width: 240, height: 32 },
   ],
   walls: [
-    { x: 0, y: 0, width: 20, height: 540 },
-    { x: 940, y: 0, width: 20, height: 540 },
-    { x: 20, y: 0, width: 920, height: 20 },
+    { x: 0, y: 0, width: 16, height: 640 },
+    { x: 624, y: 0, width: 16, height: 640 },
+    { x: 16, y: 0, width: 608, height: 16 },
   ],
-  goal: { x: 848, y: 420, width: 64, height: 80 },
+  goal: { x: 536, y: 390, width: 56, height: 80 },
   failZones: [
-    { x: 540, y: 500, width: 160, height: 40 },
-    { x: 0, y: 540, width: 960, height: 80 },
+    { x: 276, y: 470, width: 108, height: 32 },
+    { x: 0, y: 640, width: 640, height: 80 },
   ],
 } as const
 
