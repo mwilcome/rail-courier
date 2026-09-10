@@ -6,7 +6,7 @@ Plain-language pack for building the game (Phaser 3 + Vite + TypeScript). Deploy
 
 ## What the game is
 
-You ride a loaded monorail cart through a neon city. Camera sits behind the cart in a fixed screen slot (old-arcade path lock). World scrolls toward you. Nudge left/right to keep cargo from spilling. Pass stations for score; optional fling timing for bonus. Spill = fail. Between runs, upgrade the cart in a garage (Unlocks).
+You ride a loaded monorail cart through a neon city. Camera sits behind the cart in a fixed screen slot (old-arcade path lock). World scrolls toward you. Nudge left/right to keep cargo from spilling. Pass stations for score; optional L/R fling at two side drop-targets for bonus. Spill = fail. Between runs, upgrade the cart in a garage (Unlocks).
 
 **Feel:** OutDrive / Outrun moodboard — magenta/cyan neon, striped sun, reflective rail, light trails. Original silhouettes only (no OutDrive IP/assets).
 

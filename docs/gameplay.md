@@ -7,6 +7,7 @@ Terms used once here, then reused:
 - **Bump** — one discrete left/right impulse (not hold-to-steer, not gyro).
 - **Station** — neon stop you pass on the rail.
 - **Bank** — score currency saved between runs (localStorage).
+- **station_drop_target** — fat package-slot icon on a station bay (L cyan / R magenta). Replaces any cart fling arrow.
 
 ## Core loop
 
@@ -22,13 +23,13 @@ Terms used once here, then reused:
 
 | Input | Action |
 |-------|--------|
-| ← / → or A / D | Discrete bump left / right |
-| On-screen L / R pads | Same bumps (mobile) |
-| Space or center fling button | Fling package (only in station strip) |
+| ← / → or A / D | Discrete bump left / right (**outside** station strip) |
+| On-screen L / R pads | Same as keyboard |
+| L / R **in** station strip | Fling left / right at the matching side `station_drop_target` (**lean paused** for the strip) |
+
+**Dual-use (locked):** outside strip = lean bumps; in strip = fling only. No center fling button. No Space-as-fling. No gyro / tilt.
 
 Remapping: not in the finished game (defaults only).
-
-No gyro / tilt.
 
 ## Camera
 
@@ -38,14 +39,15 @@ Old-arcade path lock: cart fixed in a lower-center screen slot. Predetermined ri
 
 - Bumps add lean velocity; lean springs back over time (Gyro dampers upgrade speeds return).
 - Spill past fail threshold → Fail screen.
-- Lean warn: visual tip cue **on the cart** (not extra HUD chrome).
-- During station fling: hide lean cue; show oscillating arrow only (one cart cue at a time).
+- Lean warn: small tip chevron **on the cart**, mirrors tip side; cargo/junk tip in place with the cart (not a rigid stack). Path-lock unchanged (rotation in place, not camera move).
+- Station fling uses **station** cues only — lean warn may stay on cart (no competing cart arrow).
 
 ## Stations + score
 
 - **Pass-through auto-deliver:** stay balanced through the gate → base score (+ streak).
 - Spill in gate → fail, no score for that station.
-- **Fling bonus (same camera):** on a long station strip, arrow oscillates L↔R over the cart. Tap fling when lined up with a neon bay → bonus points. Miss = no bonus; run continues.
+- **Fling bonus (same camera):** on a long station strip, **two side drop-targets** light up (L cyan / R magenta package-slot + « »). Center bay is pass-through only — not a fling target. L/R inputs fling toward the matching target (lean paused). Skill = learn which side + speed + timing. Hit = bonus; miss = no bonus; run continues.
+- Assets: `station_drop_target` (per side). **Killed:** `cue_fling_arrow`, center `btn_fling`.
 - **Streak:** consecutive successful station passes without spill; multiplies payout.
 - **Payday** upgrade: more score per station.
 - **Station magnet** upgrade: wider deliver gate.
@@ -81,7 +83,7 @@ Parked for later (not in this build unless Mike reopens): Afterburn, Spare crate
 
 ## Run length
 
-Open until spill. Difficulty ramps so early deaths can land ~30s; strong runs land about **1–3 minutes**. No hard timer.
+Open until spill. Difficulty ramps so early deaths can land ~30s; strong runs land about **1–3 minutes**; hard runs compound around **~5 min**. No hard timer.
 
 ## Audio
 

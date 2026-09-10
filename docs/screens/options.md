@@ -4,7 +4,7 @@
 
 - **Music** mute toggle
 - **SFX** mute toggle
-- Short **controls** blurb (←/→, A/D, L/R pads, fling on stations)
+- Short **controls** blurb (←/→, A/D, L/R pads; at stations L/R fling for bonus)
 - Back to Title
 - No remapping
 
@@ -18,9 +18,9 @@
 |   SFX            [ ON / OFF ]            |
 |                                          |
 |   Controls:                              |
-|   L/R bump = arrows or A/D or pads       |
-|   Fling = space or center button         |
-|   at stations for bonus                  |
+|   Outside stations: L/R = lean bumps     |
+|   In station strip: L/R = fling only     |
+|   (lean paused) to side drop-targets     |
 |                                          |
 |              [ BACK ]                    |
 +------------------------------------------+
