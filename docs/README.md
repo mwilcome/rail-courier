@@ -38,7 +38,7 @@ flowchart LR
 | 6 | Options | [screens/options.md](screens/options.md) |
 | 7 | Unlocks (garage) | [screens/unlocks.md](screens/unlocks.md) |
 
-Gameplay systems: [gameplay.md](gameplay.md) · Levels as plugins: [levels.md](levels.md)
+Gameplay systems: [gameplay.md](gameplay.md) · Levels as plugins: [levels.md](levels.md) · Display/atlases: [display.md](display.md) · Audio: [audio.md](audio.md)
 
 ## Hard nos (local builder AI)
 

@@ -87,7 +87,7 @@ Open until spill. Difficulty ramps so early deaths can land ~30s; strong runs la
 
 ## Audio
 
-Separate **music** and **SFX** mutes in Options. Unlock audio after a user gesture (browser rule).
+Separate **music** and **SFX** mutes in Options. Unlock audio after a user gesture (browser rule). Full keys/lengths: [audio.md](audio.md).
 
 ## Persist
 
